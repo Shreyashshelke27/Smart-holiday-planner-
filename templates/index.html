@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Recommendations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Home Button -->
+        <div class="home-button-container">
+            <button id="home-button" class="home-button" title="Home">
+                <i class="fas fa-home"></i>
+            </button>
+        </div>
+
+        <div class="header">
+            <h1>Smart Holiday Planner</h1>
+            <p class="subtitle">🌟 Your Perfect Getaway, Just a Click Away! 🌟</p>
+            <p class="subtitle">✨Tell us what excites you, and we'll find a holiday that made for you!! ✨</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="destination">Destination Based</button>
+                <button class="tab-button" data-tab="preferences">User Preferences</button>
+                <button class="tab-button" data-tab="custom">Custom Search</button>
+            </div>
+
+            <!-- Destination Based -->
+            <div class="tab-content" id="destination-tab">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i>Select Destination</label>
+                        <select id="destination-select" class="select2">
+                            <option value="">Choose a destination</option>
+                            {% for dest in destinations %}
+                            <option value="{{ dest.Name }}">{{ dest.Name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="destination-details" style="display: none;">
+                        <div class="details-grid-2x2">
+                            <div class="detail-item">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span class="detail-label">District:</span>
+                                <span id="dest-district"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map"></i>
+                                <span class="detail-label">State:</span>
+                                <span id="dest-state"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-tag"></i>
+                                <span class="detail-label">Category:</span>
+                                <span id="dest-category"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span class="detail-label">Best Time:</span>
+                                <span id="dest-besttime"></span>
+                            </div>
+                        </div>
+                        <div class="detail-item description-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="detail-label">Description:</span>
+                            <span id="dest-description"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group half">
+                            <label><i class="fas fa-user"></i>Number of Adults</label>
+                            <input type="number" id="dest-adults" min="1" value="1">
+                        </div>
+                        <div class="form-group half">
+                            <label><i class="fas fa-child"></i>Number of Children</label>
+                            <input type="number" id="dest-children" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <button id="get-dest-recommendations" class="submit-button">
+                        <i class="fas fa-search"></i>Get Recommendations
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Preferences Based -->
+            <div class="tab-content" id="preferences-tab" style="display: none;">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i>Select User</label>
+                        <select id="user-select" class="select2">
+                            <option value="">Choose a user</option>
+                            {% for user in users %}
+                            <option value="{{ user.UserID }}">{{ user.Name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="user-details" style="display: none;">
+                        <div class="details-grid-3x3">
+                            <div class="detail-item">
+                                <i class="fas fa-user"></i>
+                                <span class="detail-label">Name:</span>
+                                <span id="user-name"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-venus-mars"></i>
+                                <span class="detail-label">Gender:</span>
+                                <span id="user-gender"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-location-dot"></i>
+                                <span class="detail-label">Location:</span>
+                                <span id="user-location"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-heart"></i>
+                                <span class="detail-label">Travel Preferences:</span>
+                                <span id="user-preferences"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-users"></i>
+                                <span class="detail-label">Number of Adults:</span>
+                                <span id="user-adults-count"></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-child"></i>
+                                <span class="detail-label">Number of Children:</span>
+                                <span id="user-children-count"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="get-user-recommendations" class="submit-button">
+                        <i class="fas fa-search"></i>Get Recommendations
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Search -->
+            <div class="tab-content" id="custom-tab" style="display: none;">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label><i class="fas fa-heart"></i>Travel Preferences</label>
+                        <select id="custom-preferences" class="select2">
+                            <option value="">Select preference</option>
+                            {% for pref in preferences %}
+                            <option value="{{ pref }}">{{ pref }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-map"></i>State (Optional)</label>
+                        <select id="custom-state" class="select2">
+                            <option value="">Any State</option>
+                            {% for state in states %}
+                            <option value="{{ state }}">{{ state }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group half">
+                            <label><i class="fas fa-user"></i>Number of Adults</label>
+                            <input type="number" id="custom-adults" min="1" value="1">
+                        </div>
+                        <div class="form-group half">
+                            <label><i class="fas fa-child"></i>Number of Children</label>
+                            <input type="number" id="custom-children" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <button id="get-custom-recommendations" class="submit-button">
+                        <i class="fas fa-search"></i>Get Recommendations
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div class="recommendations-section" style="display: none;">
+            <h2><center>Top Recommendations</center></h2>
+            <div class="table-responsive">
+                <table class="recommendations-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-map-marker-alt"></i>Destination</th>
+                            <th><i class="fas fa-info-circle"></i>Description</th>
+                            <th><i class="fa-solid fa-map-location-dot"></i>District</th>
+                            <th><i class="fas fa-map"></i>State</th>
+                            <th><i class="fas fa-tag"></i>Category</th>
+                            <th><i class="fas fa-calendar"></i>Best Time</th>
+                            <th><i class="fas fa-fire"></i>Popularity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recommendations-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 and set up event listeners
+            $('.select2').select2();
+            setupTabSwitching();
+            setupHomeButton();
+            setupDestinationSelect();
+            setupUserSelect();
+            setupRecommendationButtons();
+        });
+
+        // Tab switching functionality
+        function setupTabSwitching() {
+            $('.tab-button').click(function() {
+                $('.tab-button').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content').hide();
+                $('#' + $(this).data('tab') + '-tab').show();
+                $('.recommendations-section').hide();
+            });
+        }
+
+        // Home button functionality
+        function setupHomeButton() {
+            $('#home-button').click(function() {
+                // Reset all form elements
+                $('select.select2').val('').trigger('change');
+                $('input[type="number"]').each(function() {
+                    $(this).val($(this).attr('min') || 0);
+                });
+                $('#dest-adults, #custom-adults').val(1);
+                
+                // Hide details and recommendations
+                $('.destination-details, .user-details, .recommendations-section').hide();
+                
+                // Switch to first tab
+                $('.tab-button[data-tab="destination"]').click();
+                
+                // Apply animation
+                $('.container').addClass('wave-animation');
+                setTimeout(function() {
+                    $('.container').removeClass('wave-animation');
+                }, 800);
+            });
+        }
+
+        // Destination select handler
+        function setupDestinationSelect() {
+            $('#destination-select').change(function() {
+                if ($(this).val()) {
+                    $.ajax({
+                        url: '/get_destination_details',
+                        type: 'GET',
+                        data: { name: $(this).val() },
+                        success: function(data) {
+                            $('#dest-district').text(data.District || 'N/A');
+                            $('#dest-state').text(data.State || 'N/A');
+                            $('#dest-category').text(data.Category || 'N/A');
+                            $('#dest-besttime').text(data.BestTimeToVisit || 'N/A');
+                            $('#dest-description').text(data.Description || 'No description available');
+                            $('.destination-details').fadeIn(300);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error fetching destination details:', error);
+                            alert('Error loading destination details. Please try again.');
+                            $('.destination-details').hide();
+                        }
+                    });
+                } else {
+                    $('.destination-details').hide();
+                }
+            });
+        }
+
+        // User select handler
+        function setupUserSelect() {
+            $('#user-select').change(function() {
+                if ($(this).val()) {
+                    $.ajax({
+                        url: '/get_user_details',
+                        type: 'GET',
+                        data: { id: $(this).val() },
+                        success: function(data) {
+                            if (data.error) {
+                                console.error('Error:', data.error);
+                                $('.user-details').hide();
+                                alert('Error loading user details: ' + data.error);
+                            } else {
+                                $('#user-name').text(data.Name || 'N/A');
+                                $('#user-gender').text(data.Gender || 'N/A');
+                                $('#user-location').text(data.Location || 'N/A');
+                                $('#user-preferences').text(data.TravelPreferences || 'N/A');
+                                $('#user-adults-count').text(data.NumberOfAdults || '0');
+                                $('#user-children-count').text(data.NumberOfChildren || '0');
+                                $('.user-details').fadeIn(300);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error fetching user details:', error);
+                            $('.user-details').hide();
+                            alert('Error loading user details. Please try again.');
+                        }
+                    });
+                } else {
+                    $('.user-details').hide();
+                }
+            });
+        }
+
+        // Set up recommendation buttons
+        function setupRecommendationButtons() {
+            $('#get-dest-recommendations').click(function() {
+                const destination = $('#destination-select').val();
+                if (!destination) {
+                    alert('Please select a destination');
+                    return;
+                }
+                
+                getRecommendations({
+                    type: 'destination',
+                    destination: destination,
+                    adults: $('#dest-adults').val(),
+                    children: $('#dest-children').val()
+                });
+            });
+
+            $('#get-user-recommendations').click(function() {
+                const userId = $('#user-select').val();
+                if (!userId) {
+                    alert('Please select a user');
+                    return;
+                }
+                
+                getRecommendations({
+                    type: 'user',
+                    userId: userId
+                });
+            });
+
+            $('#get-custom-recommendations').click(function() {
+                const preferences = $('#custom-preferences').val();
+                if (!preferences) {
+                    alert('Please select travel preferences');
+                    return;
+                }
+                
+                getRecommendations({
+                    type: 'custom',
+                    preferences: preferences,
+                    state: $('#custom-state').val(),
+                    adults: $('#custom-adults').val(),
+                    children: $('#custom-children').val()
+                });
+            });
+        }
+
+        // Generic function to get recommendations
+        function getRecommendations(data) {
+            $.ajax({
+                url: '/get_recommendations',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: displayRecommendations,
+                error: function(xhr, status, error) {
+                    alert('Error getting recommendations: ' + error);
+                }
+            });
+        }
+
+        // Display recommendations in the table
+        function displayRecommendations(data) {
+            const tbody = $('#recommendations-body');
+            tbody.empty();
+            
+            data.recommendations.forEach(function(rec) {
+                const description = rec.Description || 'No description available';
+                
+                tbody.append(`
+                    <tr class="recommendation-row">
+                        <td>${rec.Name}</td>
+                        <td class="description-cell">${description}</td>
+                        <td>${rec.District}</td>
+                        <td>${rec.State}</td>
+                        <td>${rec.Category}</td>
+                        <td>${rec.BestTimeToVisit}</td>
+                        <td>
+                            <div class="score-wrapper">
+                                <div class="score-bar popularity">
+                                    <div class="score-fill" style="width: ${rec.PopularityScore * 100}%"></div>
+                                </div>
+                                <span class="score-text">${(rec.PopularityScore * 10).toFixed(0)}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+            
+            $('.recommendations-section').show();
+        }
+    </script>
+</body>
+</html>
